@@ -382,7 +382,7 @@ class Define extends BasicMember {
      * @returns {string} The LuaDoc class string.
      */
     toString() {
-        return "---@class " + this.name;
+        return "---@class defines." + this.name;
     }
 
 }
@@ -919,13 +919,23 @@ class Method extends BasicMember {
         if (this.parameters != null) {
             for (let i = 0; i < this.parameters.length; i++) {
                 const parameter = this.parameters[i];
-                params += parameter.name + ':' + parameter.type.toString().replaceAll("defines.", "");
+                params += parameter.name + ':' + parameter.type.toString();
                 if (i < this.parameters.length - 1) {
                     params += ", ";
                 }
             }
         }
-        return "---@field " + this.name + " fun(" + params + ") " + firstLineDesc;
+        let returns = null;
+        if (this.return_values != null && this.return_values.length > 0) {
+            for (let i = 0; i < this.return_values.length; i++) {
+                const return_value = this.return_values[i];
+                returns += return_value.type.toString();
+                if (i < this.return_values.length - 1) {
+                    returns += ", ";
+                }
+            }
+        }
+        return "---@field " + this.name + " fun(" + params + ")" + (returns ? ": " + returns : "") + " " + firstLineDesc;
     }
 
 }
