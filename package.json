@@ -1,0 +1,24 @@
+{
+  "name": "fldoc",
+  "version": "1.0.0",
+  "description": "Generate LDoc documentation from Factorio API exported JSON files",
+  "homepage": "https://github.com/FireController1847/fldoc#readme",
+  "bugs": {
+    "url": "https://github.com/FireController1847/fldoc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FireController1847/fldoc.git"
+  },
+  "license": "AGPL-3.0-only",
+  "author": "FireController#1847",
+  "type": "commonjs",
+  "main": "src/fldoc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/fldoc.js"
+  },
+  "dependencies": {
+    "commander": "^14.0.2"
+  }
+}
