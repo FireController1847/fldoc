@@ -530,11 +530,508 @@ class Prototype extends BasicMember {
 
 }
 
+/**
+ * @class Parameter
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#Parameter
+ */
+class Parameter {
+
+    /**
+     * @type {string} The name of the parameter.
+     */
+    name = null;
+
+    /**
+     * @type {number} The order of the member as shown in the HTML.
+     */
+    order = null;
+
+    /**
+     * @type {string} The text description of the parameter.
+     */
+    description = null;
+
+    /**
+     * @type {Type|string} The type of the parameter.
+     */
+    type = null;
+
+    /**
+     * @type {boolean} Whether the type is optional or not.
+     */
+    optional = null;
+
+    /**
+     * Creates a new Parameter instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        this.name = json.name;
+        this.order = json.order;
+        this.description = json.description;
+        this.type = json.type ? new Type(json.type) : null;
+        this.optional = json.optional || false;
+    }
+
+}
+
+/**
+ * @class ParameterGroup
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#ParameterGroup
+ */
+class ParameterGroup {
+
+    /**
+     * @type {string} The name of the parameter group.
+     */
+    name = null;
+
+    /**
+     * @type {number} The order of the member as shown in the HTML.
+     */
+    order = null;
+
+    /**
+     * @type {string} The text description of the parameter group.
+     */
+    description = null;
+
+    /**
+     * @type {Array<Parameter>} The parameters that the group adds.
+     */
+    parameters = null;
+
+    /**
+     * Creates a new ParameterGroup instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        this.name = json.name;
+        this.order = json.order;
+        this.description = json.description;
+
+        if (Array.isArray(json.parameters)) {
+            this.parameters = [];
+            for (const parameter_json of json.parameters) {
+                const parameter = new Parameter(parameter_json);
+                this.parameters.push(parameter);
+            }
+        } else {
+            this.parameters = null;
+        }
+    }
+
+}
+
+/**
+ * @class VariadicParameter
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#VariadicParameter
+ */
+class VariadicParameter {
+
+    /**
+     * @type {Type} The type of the variadic arguments of the method, if it accepts any.
+     */
+    type = null;
+
+    /**
+     * @type {string} The description of the variadic arguments of the method, if it accepts any.
+     */
+    description = null;
+
+    /**
+     * Creates a new VariadicParameter instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        this.type = json.type ? new Type(json.type) : null;
+        this.description = json.description;
+    }
+
+}
+
+/**
+ * @class MethodFormat
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#MethodFormat
+ */
+class MethodFormat {
+
+    /**
+     * @type {boolean} Whether the method takes a single table with named parameters or a sequence of unnamed parameters.
+     */
+    takes_table = null;
+
+    /**
+     * @type {boolean|null} If takes_table is true, whether that whole table is optional or not.
+     */
+    takes_optional = null;
+
+    /**
+     * Creates a new MethodFormat instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        this.takes_table = json.takes_table || false;
+        this.takes_optional = json.takes_optional || null;
+    }
+
+}
+
+/**
+ * @class EventRaised
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#EventRaised
+ */
+class EventRaised {
+
+    /**
+     * @type {string} The name of the event being raised.
+     */
+    name = null;
+
+    /**
+     * @type {number} The order of the member as shown in the HTML.
+     */
+    order = null;
+
+    /**
+     * @type {string} The text description of the raised event.
+     */
+    description = null;
+
+    /**
+     * @type {string} The timeframe during which the event is raised. One of "instantly", "current_tick", or "future_tick".
+     */
+    timeframe = null;
+
+    /**
+     * @type {boolean} Whether the event is always raised, or only dependant on a certain condition.
+     */
+    optional = null;
+
+    /**
+     * Creates a new EventRaised instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        this.name = json.name;
+        this.order = json.order;
+        this.description = json.description;
+        this.timeframe = json.timeframe;
+        this.optional = json.optional;
+    }
+
+}
+
+/**
+ * @class Attribute
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#Attribute
+ */
+class Attribute extends BasicMember {
+
+    /**
+     * @type {Array<string>|null} The list of game expansions needed to use this attribute. If not present, no restrictions apply. Possible values: "space_age".
+     */
+    visibility = null;
+
+    /**
+     * @type {Array<EventRaised>|null} A list of events that this attribute might raise when written to.
+     */
+    raises = null;
+
+    /**
+     * @type {Array<string>|null} A list of strings specifying the sub-type (of the class) that the attribute applies to.
+     */
+    subclasses = null;
+
+    /**
+     * @type {Type|string|null} The type of the attribute when it's read from. Only present if this attribute can be read from.
+     */
+    read_type = null;
+
+    /**
+     * @type {Type|string|null} The type of the attribute when it's written to. Only present if this attribute can be written to.
+     */
+    write_type = null;
+
+    /**
+     * @type {boolean} Whether the attribute is optional or not.
+     */
+    optional = null;
+
+    /**
+     * Creates a new Attribute instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        super(json);
+        this.visibility = json.visibility || null;
+
+        if (Array.isArray(json.raises)) {
+            this.raises = [];
+            for (const raised_json of json.raises) {
+                const raised = new EventRaised(raised_json);
+                this.raises.push(raised);
+            }
+        } else {
+            this.raises = null;
+        }
+
+        this.subclasses = json.subclasses || null;
+        this.read_type = json.read_type ? new Type(json.read_type) : null;
+        this.write_type = json.write_type ? new Type(json.write_type) : null;
+        this.optional = json.optional || false;
+    }
+
+    /**
+     * Generates the LuaDoc field string for this attribute.
+     * @returns {string} The LuaDoc field string.
+     */
+    toField() {
+        let firstLineDesc = this.description.split('\n')[0];
+        let typeStr = "";
+        if (this.read_type != null && this.write_type != null) {
+            typeStr = this.read_type.toString() + " | " + this.write_type.toString();
+        } else if (this.read_type != null) {
+            typeStr = this.read_type.toString();
+        } else if (this.write_type != null) {
+            typeStr = this.write_type.toString();
+        } else {
+            typeStr = "any";
+        }
+        return "---@field " + this.name + " " + typeStr + " " + firstLineDesc;
+    }
+
+}
+
+/**
+ * @class Method
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#Method
+ */
+class Method extends BasicMember {
+
+    /**
+     * @type {Array<string>|null} The list of game expansions needed to use this method. If not present, no restrictions apply. Possible values: "space_age".
+     */
+    visibility = null;
+
+    /**
+     * @type {Array<EventRaised>|null} A list of events that this method might raise when called.
+     */
+    raises = null;
+
+    /**
+     * @type {Array<string>|null} A list of strings specifying the sub-type (of the class) that the method applies to.
+     */
+    subclasses = null;
+
+    /**
+     * @type {Array<Parameter>} The parameters of the method. How to interpret them depends on the format member.
+     */
+    parameters = null;
+
+    /**
+     * @type {Array<ParameterGroup>|null} The optional parameters that depend on one of the main parameters. Only applies if takes_table is true.
+     */
+    variant_parameter_groups = null;
+
+    /**
+     * @type {string|null} The text description of the optional parameter groups.
+     */
+    variant_parameter_description = null;
+
+    /**
+     * @type {VariadicParameter|null} The variadic parameter of the method, if it accepts any.
+     */
+    variadic_parameter = null;
+
+    /**
+     * @type {MethodFormat} Details on how the method's arguments are defined.
+     */
+    format = null;
+
+    /**
+     * @type {Array<Parameter>|null} The return values of this method, which can contain zero, one, or multiple values. Note that these have the same structure as parameters, but do not specify a name.
+     */
+    return_values = null;
+
+    /**
+     * Creates a new Method instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        super(json);
+        this.visibility = json.visibility || null;
+
+        if (Array.isArray(json.raises)) {
+            this.raises = [];
+            for (const raised_json of json.raises) {
+                const raised = new EventRaised(raised_json);
+                this.raises.push(raised);
+            }
+        } else {
+            this.raises = null;
+        }
+
+        this.subclasses = json.subclasses || null;
+
+        if (Array.isArray(json.parameters)) {
+            this.parameters = [];
+            for (const parameter_json of json.parameters) {
+                const parameter = new Parameter(parameter_json);
+                this.parameters.push(parameter);
+            }
+        } else {
+            this.parameters = null;
+        }
+
+        if (Array.isArray(json.variant_parameter_groups)) {
+            this.variant_parameter_groups = [];
+            for (const group_json of json.variant_parameter_groups) {
+                const group = new ParameterGroup(group_json);
+                this.variant_parameter_groups.push(group);
+            }
+        } else {
+            this.variant_parameter_groups = null;
+        }
+
+        this.variant_parameter_description = json.variant_parameter_description || null;
+        this.variadic_parameter = json.variadic_parameter ? new VariadicParameter(json.variadic_parameter) : null;
+        this.format = json.format ? new MethodFormat(json.format) : null;
+
+        if (Array.isArray(json.return_values)) {
+            this.return_values = [];
+            for (const return_json of json.return_values) {
+                const return_value = new Parameter(return_json);
+                this.return_values.push(return_value);
+            }
+        } else {
+            this.return_values = null;
+        }
+    }
+
+    /**
+     * Generates the LuaDoc field string for this method.
+     * @returns {string} The LuaDoc field string.
+     */
+    toField() {
+        let firstLineDesc = this.description.split('\n')[0];
+        let params = "";
+        if (this.parameters != null) {
+            for (let i = 0; i < this.parameters.length; i++) {
+                const parameter = this.parameters[i];
+                params += parameter.name + ':' + parameter.type.toString().replaceAll("defines.", "");
+                if (i < this.parameters.length - 1) {
+                    params += ", ";
+                }
+            }
+        }
+        return "---@field " + this.name + " fun(" + params + ") " + firstLineDesc;
+    }
+
+}
+
+/**
+ * @class Class
+ * @see https://lua-api.factorio.com/latest/auxiliary/json-docs-runtime.html#Class
+ */
+class Class extends BasicMember {
+
+    /**
+     * @type {Array<string>|null} The list of game expansions needed to use this class. If not present, no restrictions apply. Possible values: "space_age".
+     */
+    visibility = null;
+
+    /**
+     * @type {string|null} The name of the class that this class inherits from.
+     */
+    parent = null;
+
+    /**
+     * @type {boolean} Whether the class is never itself instantiated, only inherited from.
+     */
+    abstract = null;
+
+    /**
+     * @type {Array<Method>} The methods that are part of the class.
+     */
+    methods = null;
+
+    /**
+     * @type {Array<Attribute>} The attributes that are part of the class.
+     */
+    attributes = null;
+
+    /**
+     * @type {Array<Method | Attribute>} A list of operators on the class. They are called call, index, or length and have the format of either a Method or an Attribute.
+     */
+    operators = null;
+
+    /**
+     * Creates a new Class instance from the given JSON data.
+     * @param {object} json The parsed JSON from the documentation
+     */
+    constructor(json) {
+        super(json);
+        this.visibility = json.visibility || null;
+        this.parent = json.parent || null;
+        this.abstract = json.abstract || false;
+
+        if (Array.isArray(json.methods)) {
+            this.methods = [];
+            for (const method_json of json.methods) {
+                const method = new Method(method_json);
+                this.methods.push(method);
+            }
+        } else {
+            this.methods = null;
+        }
+
+        if (Array.isArray(json.attributes)) {
+            this.attributes = [];
+            for (const attribute_json of json.attributes) {
+                const attribute = new Attribute(attribute_json);
+                this.attributes.push(attribute);
+            }
+        } else {
+            this.attributes = null;
+        }
+
+        if (Array.isArray(json.operators)) {
+            this.operators = [];
+            for (const operator_json of json.operators) {
+                let operator = null;
+                if (operator_json.name === "call" || operator_json.name === "index" || operator_json.name === "length") {
+                    if (operator_json.parameters || operator_json.return_values) {
+                        operator = new Method(operator_json);
+                    } else {
+                        operator = new Attribute(operator_json);
+                    }
+                }
+                if (operator !== null) {
+                    this.operators.push(operator);
+                }
+            }
+        } else {
+            this.operators = null;
+        }
+    }
+
+    /**
+     * Generates the LuaDoc class string for this class.
+     * @returns {string} The LuaDoc class string.
+     */
+    toClass() {
+        return "---@class " + this.name;
+    }
+
+}
+
 module.exports = {
     Image,
     BasicMember,
     Concept,
     Define,
     Property,
+    Class,
     Prototype
 };

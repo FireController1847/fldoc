@@ -1,4 +1,4 @@
-const { Concept, Define, Prototype } = require("./classes");
+const { Class, Concept, Define, Prototype } = require("./classes");
 const { name, version, description, repository } = require("../package.json");
 const { program } = require("commander");
 const fs = require("fs");
@@ -8,6 +8,7 @@ program
     .description(description)
     .version(version)
     .argument("<prototype-json>", "Path to the prototype JSON file")
+    .argument("<runtime-json>", "Path to the runtime JSON file")
     .option("-o, --output <output-dir>", "Directory to output the generated documentation");
 
 program.parse();
@@ -16,6 +17,7 @@ program.parse();
 const args = program.args;
 const opts = program.opts();
 const prototype_path = args[0];
+const runtime_path = args[1];
 const output_dir = opts.first || "gen";
 
 if (!fs.existsSync(prototype_path)) {
@@ -33,12 +35,26 @@ if (!fs.existsSync(output_dir)) {
 const prototypes_json = JSON.parse(fs.readFileSync(prototype_path, "utf-8"));
 const prototypes_version = prototypes_json.application_version
 const prototypes_api_version = prototypes_json.api_version
-const types = prototypes_json.types || [];
+const types = prototypes_json.types;
 console.log(`Loaded ${types.length} types from "${prototype_path}".`);
-const defines = prototypes_json.defines || [];
-console.log(`Loaded ${defines.length} defines from "${prototype_path}".`);
+const defines_prototypes = prototypes_json.defines;
+console.log(`Loaded ${defines_prototypes.length} defines from "${prototype_path}".`);
 const prototypes = prototypes_json.prototypes;
 console.log(`Loaded ${prototypes.length} prototypes (v${prototypes_version}, API v${prototypes_api_version}) from "${prototype_path}".\n`);
+
+// Parse runtime JSON
+const runtime_json = JSON.parse(fs.readFileSync(runtime_path, "utf-8"));
+const runtime_version = runtime_json.application_version
+const runtime_api_version = runtime_json.api_version
+const events = runtime_json.events;
+console.log(`Loaded ${events.length} events from "${runtime_path}".`);
+const concepts = runtime_json.concepts;
+console.log(`Loaded ${concepts.length} concepts from "${runtime_path}".`);
+const defines_runtime = runtime_json.defines;
+console.log(`Loaded ${defines_runtime.length} defines from "${runtime_path}".`);
+const classes = runtime_json.classes;
+console.log(`Loaded ${classes.length} classes (v${runtime_version}, API v${runtime_api_version}) from "${runtime_path}".\n`);
+
 
 // console.log("==========================================================================");
 
@@ -51,7 +67,9 @@ documentation_string += "-- Date: " + new Date().toISOString() + "\n";
 documentation_string += "-- =============================================================\n";
 documentation_string += "\n";
 
+//-------------------------------------------------------------------
 // Process prototypes
+//-------------------------------------------------------------------
 
 // Generates the LUADOC (not LDOC) documentation for a type
 /** @param {Concept} concept */
@@ -109,8 +127,8 @@ for (let i = 0; i < types.length; i++) {
         documentation_string += "\n\n";
     }
 }
-for (let i = 0; i < defines.length; i++) {
-    const type = new Define(defines[i]);
+for (let i = 0; i < defines_prototypes.length; i++) {
+    const type = new Define(defines_prototypes[i]);
     documentation_string += generateLuaDocForDefine(type);
     if (i < types.length - 1) {
         documentation_string += "\n\n";
@@ -123,6 +141,55 @@ for (let i = 0; i < prototypes.length; i++) {
         documentation_string += "\n\n";
     }
 }
+
+
+//-------------------------------------------------------------------
+// Process runtime
+//-------------------------------------------------------------------
+
+// Generates the LUADOC (not LDOC) documentation for a class
+/** @param {Class} cls */
+function generateLuaDocForClass(cls) {
+    let doc = "";
+    doc += cls.toClass() + "\n";
+    if (cls.methods != null) {
+        for (let i = 0; i < cls.methods.length; i++) {
+            const method = cls.methods[i];
+            doc += method.toField();
+            if (i < cls.methods.length - 1) {
+                doc += "\n";
+            }
+        }
+    }
+    if (cls.attributes != null) {
+        for (let i = 0; i < cls.attributes.length; i++) {
+            const attribute = cls.attributes[i];
+            doc += attribute.toField();
+            if (i < cls.attributes.length - 1) {
+                doc += "\n";
+            }
+        }
+    }
+    return doc;
+}
+
+// As far as I can tell, this is the same as the defines from prototypes?
+// for (let i = 0; i < defines_runtime.length; i++) {
+//     const type = new Define(defines_runtime[i]);
+//     documentation_string += generateLuaDocForDefine(type);
+//     if (i < types.length - 1) {
+//         documentation_string += "\n\n";
+//     }
+// }
+for (let i = 0; i < classes.length; i++) {
+    const cls = new Class(classes[i]);
+    documentation_string += generateLuaDocForClass(cls);
+    if (i < classes.length - 1) {
+        documentation_string += "\n\n";
+    }
+}
+
+
 // console.log(documentation_string);
 // console.log("==========================================================================");
 
